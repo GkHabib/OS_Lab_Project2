@@ -159,7 +159,19 @@ _forktest: forktest.o $(ULIB)
 _sort: sort.o $(ULIB)
 	$(LD) $(LDFLAGS) -N -e main -Ttext 0 -o _sort sort.o ulib.o usys.o
 	$(OBJDUMP) -S _sort > sort.asm
+# **************************************************************************************
+_SYS_get_count: SYS_get_count.o $(ULIB)
+	$(LD) $(LDFLAGS) -N -e main -Ttext 0 -o _SYS_get_count SYS_get_count.o ulib.o usys.o
+	$(OBJDUMP) -S _SYS_get_count > SYS_get_count.asm
 
+_SYS_invoked_syscalls: SYS_invoked_syscalls.o $(ULIB)
+	$(LD) $(LDFLAGS) -N -e main -Ttext 0 -o _SYS_invoked_syscalls SYS_invoked_syscalls.o ulib.o usys.o
+	$(OBJDUMP) -S _SYS_invoked_syscalls > SYS_invoked_syscalls.asm
+
+_SYS_sort_syscalls: SYS_sort_syscalls.o $(ULIB)
+	$(LD) $(LDFLAGS) -N -e main -Ttext 0 -o _SYS_sort_syscalls SYS_sort_syscalls.o ulib.o usys.o
+	$(OBJDUMP) -S _SYS_sort_syscalls > SYS_sort_syscalls.asm
+# ***************************************************************************************
 mkfs: mkfs.c fs.h
 	gcc -Werror -Wall -o mkfs mkfs.c
 
@@ -174,6 +186,9 @@ UPROGS=\
 	_echo\
 	_forktest\
 	_sort\
+	_SYS_get_count\
+	_SYS_invoked_syscalls\
+	_SYS_sort_syscalls\
 	_grep\
 	_init\
 	_kill\
@@ -254,7 +269,7 @@ qemu-nox-gdb: fs.img xv6.img .gdbinit
 
 EXTRA=\
 	mkfs.c ulib.c user.h cat.c echo.c forktest.c grep.c kill.c\
-	ln.c ls.c sort.c mkdir.c rm.c stressfs.c usertests.c wc.c zombie.c\
+	ln.c ls.c sort.c  SYS_get_count.c _SYS_invoked_syscalls.c _SYS_sort_syscalls.c mkdir.c rm.c stressfs.c usertests.c wc.c zombie.c\
 	printf.c umalloc.c\
 	README dot-bochsrc *.pl toc.* runoff runoff1 runoff.list\
 	.gdbinit.tmpl gdbutil\
