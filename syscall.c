@@ -105,6 +105,7 @@ extern int sys_write(void);
 extern int sys_uptime(void);
 extern int sys_invoked_syscalls(void);
 extern int sys_sort_syscalls(void);
+extern int sys_get_count(void);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -130,6 +131,7 @@ static int (*syscalls[])(void) = {
 [SYS_close]   sys_close,
 [SYS_invoked_syscalls]    sys_invoked_syscalls,
 [SYS_sort_syscalls]       sys_sort_syscalls,
+[SYS_get_count]           sys_get_count,
 };
 
 
@@ -285,20 +287,29 @@ print_invoked_syscalls(uint pid)
     return;
   }
 
+  cprintf("=> Start list of syscalls of process %d\n", pid);
   struct _my_syscall_history* curr = history->calls;
   while(curr) {
     cprintf("-> system call %d\n", curr->num);
     curr = curr->next;
   }
+  cprintf("=> End list of syscalls of process %d\n", pid);
 
 }
 
-// void swap(struct Node *a, struct Node *b) 
-// { 
-//     int temp = a->data; 
-//     a->data = b->data; 
-//     b->data = temp; 
-// } 
+void swap(struct _my_syscall_history* a, struct _my_syscall_history* b) 
+{ 
+  // b->next->prev = a;
+  // a->next = b->next;
+  // b->next->prev = a;
+  // b->next = a;
+  // b->prev = a->prev;
+  // a->prev->next = b;
+  // a->prev = b;
+  int num = a->num;
+  a->num = b->num;
+  b->num = num;
+} 
 
 void 
 my_sort_syscalls(uint pid) {
@@ -308,30 +319,48 @@ my_sort_syscalls(uint pid) {
     return;
   }
 
-  // int swapped, i;
-  // struct Node *ptr1; 
-  // struct Node *lptr = NULL; 
+  int swapped;
+  struct _my_syscall_history* start = history->calls; 
+  struct _my_syscall_history* ptr1; 
+  struct _my_syscall_history* lptr = 0; 
 
-  // /* Checking for empty list */
-  // if (start == NULL) 
-  //     return; 
+  if (start == 0) 
+      return; 
+  do
+  { 
+      swapped = 0; 
+      ptr1 = start; 
 
-  // do
-  // { 
-  //     swapped = 0; 
-  //     ptr1 = start; 
-
-  //     while (ptr1->next != lptr) 
-  //     { 
-  //         if (ptr1->data > ptr1->next->data) 
-  //         {  
-  //             swap(ptr1, ptr1->next); 
-  //             swapped = 1; 
-  //         } 
-  //         ptr1 = ptr1->next; 
-  //     } 
-  //     lptr = ptr1; 
-  // } 
-  // while (swapped);
+      while (ptr1->next != lptr) 
+      { 
+          if (ptr1->num > ptr1->next->num) 
+          {  
+              swap(ptr1, ptr1->next); 
+              swapped = 1; 
+          } 
+          ptr1 = ptr1->next; 
+      } 
+      lptr = ptr1; 
+  } 
+  while (swapped);
 }
 
+void 
+my_get_count(uint pid, uint sysnum) {
+  struct _my_history* history = find_history_of_process(pid);
+  if(!history) {
+    cprintf("The process number %d never called any system call.\n", pid);
+    return;
+  }
+
+  struct _my_syscall_history* curr = history->calls;
+  int count = 0;
+
+  while(curr) {
+    if(curr->num == sysnum)
+      count++;
+    curr = curr->next;
+  }
+
+  cprintf("The PID %d called %dth syscall by %d times.\n", pid, sysnum, count);
+}

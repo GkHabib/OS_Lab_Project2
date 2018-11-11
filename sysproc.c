@@ -109,3 +109,15 @@ sys_sort_syscalls(void)
   my_sort_syscalls(pid);
   return 0;
 }
+
+extern void my_get_count(uint pid, uint sysnum);
+int
+sys_get_count(void)
+{
+  int pid;
+  argint(0, &pid);
+  int num;
+  argint(1, &num);
+  my_get_count(pid, num);
+  return 0;
+}

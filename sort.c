@@ -60,8 +60,7 @@ main(int argc, char *argv[])
 
   sort_syscalls(2);
   invoked_syscalls(2);
-  invoked_syscalls(3);
-  invoked_syscalls(4);
+  get_count(2, 16);
   exit();
 
   int array[5];
