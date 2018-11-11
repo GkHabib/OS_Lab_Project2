@@ -178,8 +178,6 @@ _add_history(uint pid) {
   new_node->next = 0;
   new_node->calls = 0;
 
-  cprintf("newnode is : %p \n", new_node);
-  cprintf("_History is : %p \n", _History);
   struct _my_history* curr = _History;
   if(!curr) {
     _History = new_node;
@@ -281,8 +279,7 @@ print_invoked_syscalls(uint pid)
 {
   my_flag = 1;
   struct _my_history* history = find_history_of_process(pid);
-  cprintf("process pid is : %d\n", pid);
-  cprintf("process pointer is : %p \n", history);
+  
   if(!history) {
     cprintf("The process number %d never called any system call.\n", pid);
     return;
@@ -296,10 +293,6 @@ print_invoked_syscalls(uint pid)
 
 }
 
-void print_invoked_processes()
-{
-
-}
 // void swap(struct Node *a, struct Node *b) 
 // { 
 //     int temp = a->data; 
