@@ -58,7 +58,7 @@ main(int argc, char *argv[])
   write(1, "\n", 1);
 
 
-  // sort_syscalls(getpid());
+  sort_syscalls(2);
   invoked_syscalls(2);
   exit();
 

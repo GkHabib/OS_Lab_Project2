@@ -104,6 +104,7 @@ extern int sys_wait(void);
 extern int sys_write(void);
 extern int sys_uptime(void);
 extern int sys_invoked_syscalls(void);
+extern int sys_sort_syscalls(void);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -128,7 +129,7 @@ static int (*syscalls[])(void) = {
 [SYS_mkdir]   sys_mkdir,
 [SYS_close]   sys_close,
 [SYS_invoked_syscalls]    sys_invoked_syscalls,
-// [SYS_sort_syscalls]       sys_sort_syscalls,
+[SYS_sort_syscalls]       sys_sort_syscalls,
 };
 
 
@@ -178,7 +179,7 @@ _add_history(uint pid) {
 
   struct _my_history* curr = _History;
   if(!curr) {
-    curr = new_node;
+    _History = new_node;
   }
   else {
     while(curr->next)
@@ -241,7 +242,6 @@ syscall(void)
 
 
   if(my_flag) {
-    // cprintf("pid: %d syscall: %d\n", curproc->pid, num);
     syscall_called_event(curproc->pid, num);
   }
 
@@ -253,6 +253,21 @@ syscall(void)
             curproc->pid, curproc->name, num);
     curproc->tf->eax = -1;
   }
+
+  // if(my_flag) {
+  //   cprintf("=== Start\n");
+  //   struct _my_history* curr = _History;
+  //   while(curr) {
+  //     cprintf("PID: %d\n");
+  //     struct _my_syscall_history* curr2 = curr->calls;
+  //     while(curr2) {
+  //       cprintf("\tSYSCALL %d\n", curr2->num);
+  //       curr2 = curr2->next;
+  //     }
+  //     curr = curr->next; 
+  //   }
+  //   cprintf("=== END\n");
+  // }
 }
 
 
@@ -281,38 +296,38 @@ print_invoked_syscalls(uint pid)
 //     b->data = temp; 
 // } 
 
-// void 
-// sort_syscalls(uint pid) {
-//   struct _my_history* history = find_history_of_process(pid);
-//   if(!history) {
-//     cprintf("The process number %d never called any system call.\n", pid);
-//     return;
-//   }
+void 
+my_sort_syscalls(uint pid) {
+  struct _my_history* history = find_history_of_process(pid);
+  if(!history) {
+    cprintf("The process number %d never called any system call.\n", pid);
+    return;
+  }
 
-//   int swapped, i; 
-//   struct Node *ptr1; 
-//   struct Node *lptr = NULL; 
+  // int swapped, i; 
+  // struct Node *ptr1; 
+  // struct Node *lptr = NULL; 
 
-//   /* Checking for empty list */
-//   if (start == NULL) 
-//       return; 
+  // /* Checking for empty list */
+  // if (start == NULL) 
+  //     return; 
 
-//   do
-//   { 
-//       swapped = 0; 
-//       ptr1 = start; 
+  // do
+  // { 
+  //     swapped = 0; 
+  //     ptr1 = start; 
 
-//       while (ptr1->next != lptr) 
-//       { 
-//           if (ptr1->data > ptr1->next->data) 
-//           {  
-//               swap(ptr1, ptr1->next); 
-//               swapped = 1; 
-//           } 
-//           ptr1 = ptr1->next; 
-//       } 
-//       lptr = ptr1; 
-//   } 
-//   while (swapped);
-// }
+  //     while (ptr1->next != lptr) 
+  //     { 
+  //         if (ptr1->data > ptr1->next->data) 
+  //         {  
+  //             swap(ptr1, ptr1->next); 
+  //             swapped = 1; 
+  //         } 
+  //         ptr1 = ptr1->next; 
+  //     } 
+  //     lptr = ptr1; 
+  // } 
+  // while (swapped);
+}
 

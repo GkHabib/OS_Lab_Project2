@@ -100,12 +100,12 @@ sys_invoked_syscalls(void)
   return 0;
 }
 
-// extern void sort_syscalls(uint pid);
-// int
-// sys_sort_syscalls(void)
-// {
-//   int pid;
-//   argint(0, &pid);
-//   sort_syscalls(pid);
-//   return 0;
-// }
+extern void my_sort_syscalls(uint pid);
+int
+sys_sort_syscalls(void)
+{
+  int pid;
+  argint(0, &pid);
+  my_sort_syscalls(pid);
+  return 0;
+}
