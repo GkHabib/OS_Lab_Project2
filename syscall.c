@@ -167,6 +167,7 @@ struct _my_history*
 _add_history(uint pid) {
   // struct _my_history* new_node = (struct _my_history*)malloc(sizeof(struct _my_history));
   struct _my_history* new_node = (struct _my_history*)kalloc();
+  memset(new_node, 0, sizeof(struct _my_history));
   if(!new_node)
   {
     cprintf("failed to save history.\n");
@@ -176,9 +177,11 @@ _add_history(uint pid) {
   new_node->next = 0;
   new_node->calls = 0;
 
+  cprintf("newnode is : %p \n", new_node);
+  cprintf("_History is : %p \n", _History);
   struct _my_history* curr = _History;
   if(!curr) {
-    curr = new_node;
+    _History = new_node;
   }
   else {
     while(curr->next)
@@ -187,6 +190,7 @@ _add_history(uint pid) {
   }
 
   return new_node;
+  
 }
 
 void 
@@ -212,6 +216,7 @@ _add_call(struct _my_history* history, int num) {
     curr->next = new_node;
     new_node->prev = curr;
   }
+  
 }
 
 void
@@ -261,6 +266,8 @@ print_invoked_syscalls(uint pid)
 {
   my_flag = 1;
   struct _my_history* history = find_history_of_process(pid);
+  cprintf("process pid is : %d\n", pid);
+  cprintf("process pointer is : %p \n", history);
   if(!history) {
     cprintf("The process number %d never called any system call.\n", pid);
     return;
@@ -274,6 +281,10 @@ print_invoked_syscalls(uint pid)
 
 }
 
+void print_invoked_processes()
+{
+
+}
 // void swap(struct Node *a, struct Node *b) 
 // { 
 //     int temp = a->data; 
