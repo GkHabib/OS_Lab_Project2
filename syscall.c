@@ -304,7 +304,7 @@ my_sort_syscalls(uint pid) {
     return;
   }
 
-  // int swapped, i; 
+  // int swapped, i;
   // struct Node *ptr1; 
   // struct Node *lptr = NULL; 
 
