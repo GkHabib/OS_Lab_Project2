@@ -6,6 +6,6 @@
 
 int main(int argc, char const *argv[])
 {
-    log_syscalls();
+    // log_syscalls();
     return 0;
 }
