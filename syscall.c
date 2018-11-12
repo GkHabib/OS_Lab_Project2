@@ -6,6 +6,7 @@
 #include "proc.h"
 #include "x86.h"
 #include "syscall.h"
+#include "date.h"
 
 // User code makes a system call with INT T_SYSCALL.
 // System call number in %eax.
@@ -138,6 +139,7 @@ static int (*syscalls[])(void) = {
 struct _my_syscall_history
 {
   uint num;
+  struct rtcdate* date;
   struct _my_syscall_history* next;
   struct _my_syscall_history* prev;
 };
@@ -198,11 +200,13 @@ void
 _add_call(struct _my_history* history, int num) {
   // struct _my_syscall_history* new_node = (struct _my_syscall_history*)malloc(sizeof(struct _my_syscall_history));
   struct _my_syscall_history* new_node = (struct _my_syscall_history*)kalloc();
+  memset(new_node, 0, sizeof(struct _my_syscall_history));
   if(!new_node)
   {
     cprintf("failed to save history.\n");
     return;
   }
+  cmostime(new_node->date);
   new_node->num = num;
   new_node->next = 0;
   new_node->prev = 0;
@@ -246,13 +250,18 @@ syscall(void)
   num = curproc->tf->eax;
 
 
-  if(my_flag) {
-    syscall_called_event(curproc->pid, num);
-  }
+  // if(my_flag) {
+  //   syscall_called_event(curproc->pid, num);
+  // }
 
 
   if(num > 0 && num < NELEM(syscalls) && syscalls[num]) {
+    
+    if(my_flag) {
+      syscall_called_event(curproc->pid, num);
+    }
     curproc->tf->eax = syscalls[num]();
+
   } else {
     cprintf("%d %s: unknown sys call %d\n",
             curproc->pid, curproc->name, num);
@@ -290,7 +299,7 @@ print_invoked_syscalls(uint pid)
   cprintf("=> Start list of syscalls of process %d\n", pid);
   struct _my_syscall_history* curr = history->calls;
   while(curr) {
-    cprintf("-> system call %d\n", curr->num);
+    cprintf("-> system call %d   %d/%d/%d  %d:%d\':%d\"\n", curr->num, curr->date->year, curr->date->month, curr->date->day, curr->date->hour, curr->date->minute, curr->date->second);
     curr = curr->next;
   }
   cprintf("=> End list of syscalls of process %d\n", pid);
