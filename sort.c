@@ -59,7 +59,7 @@ main(int argc, char *argv[])
 
 
   sort_syscalls(2);
-  // invoked_syscalls(2);
+  invoked_syscalls(2);
   // get_count(2, 16);
   log_syscalls();
   exit();

@@ -107,6 +107,7 @@ extern int sys_uptime(void);
 extern int sys_invoked_syscalls(void);
 extern int sys_sort_syscalls(void);
 extern int sys_get_count(void);
+extern int sys_log_syscalls(void);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -133,6 +134,7 @@ static int (*syscalls[])(void) = {
 [SYS_invoked_syscalls]    sys_invoked_syscalls,
 [SYS_sort_syscalls]       sys_sort_syscalls,
 [SYS_get_count]           sys_get_count,
+[SYS_log_syscalls]        sys_log_syscalls,
 };
 
 
@@ -227,8 +229,9 @@ _add_call(struct _my_history* history, int num, int pid) {
     new_node->prev = curr;
   }
   struct _my_syscall_history* curr = _Global_History.calls;
-  if(!curr)
+  if(!curr) {
     _Global_History.calls = new_node;
+  }
   else {
     while(curr->global_next) {
       curr = curr->global_next;
@@ -263,12 +266,6 @@ syscall(void)
 
   num = curproc->tf->eax;
 
-
-  // if(my_flag) {
-  //   syscall_called_event(curproc->pid, num);
-  // }
-
-
   if(num > 0 && num < NELEM(syscalls) && syscalls[num]) {
     
     if(my_flag) {
@@ -302,7 +299,11 @@ syscall(void)
 void 
 print_invoked_syscalls(uint pid)
 {
-  my_flag = 1;
+  if(!my_flag) {
+    my_flag = 1;
+    _Global_History.calls = 0;
+  }
+  
   struct _my_history* history = find_history_of_process(pid);
   
   if(!history) {
