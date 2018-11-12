@@ -121,3 +121,11 @@ sys_get_count(void)
   my_get_count(pid, num);
   return 0;
 }
+
+extern void my_log_syscalls(void);
+int
+sys_log_syscalls(void)
+{
+  my_log_syscalls();
+  return 0;
+}

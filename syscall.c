@@ -139,8 +139,10 @@ static int (*syscalls[])(void) = {
 struct _my_syscall_history
 {
   uint num;
+  uint pid;
   struct rtcdate* date;
   struct _my_syscall_history* next;
+  struct _my_syscall_history* global_next;
   struct _my_syscall_history* prev;
 };
 
@@ -152,6 +154,7 @@ struct _my_history
 };
 
 struct _my_history* _History = 0;
+struct _my_history _Global_History;
 
 struct _my_history* find_history_of_process(uint pid) {
   if(!_History)
@@ -197,7 +200,7 @@ _add_history(uint pid) {
 }
 
 void 
-_add_call(struct _my_history* history, int num) {
+_add_call(struct _my_history* history, int num, int pid) {
   // struct _my_syscall_history* new_node = (struct _my_syscall_history*)malloc(sizeof(struct _my_syscall_history));
   struct _my_syscall_history* new_node = (struct _my_syscall_history*)kalloc();
   memset(new_node, 0, sizeof(struct _my_syscall_history));
@@ -208,7 +211,9 @@ _add_call(struct _my_history* history, int num) {
   }
   cmostime(new_node->date);
   new_node->num = num;
+  new_node->pid = pid;
   new_node->next = 0;
+  new_node->global_next = 0;
   new_node->prev = 0;
 
   if(!history->calls) {
@@ -221,7 +226,16 @@ _add_call(struct _my_history* history, int num) {
     curr->next = new_node;
     new_node->prev = curr;
   }
+  struct _my_syscall_history* curr = _Global_History.calls;
+  if(!curr)
+    _Global_History.calls = new_node;
+  else {
+    while(curr->global_next) {
+      curr = curr->global_next;
+    curr->global_next = new_node;
+  }
   
+  }
 }
 
 void
@@ -236,7 +250,7 @@ syscall_called_event(uint pid, int num)
     }
   }
 
-  _add_call(this_pid, num);
+  _add_call(this_pid, num, pid);
 }
 
 int my_flag = 0;
@@ -372,4 +386,16 @@ my_get_count(uint pid, uint sysnum) {
   }
 
   cprintf("The PID %d called %dth syscall by %d times.\n", pid, sysnum, count);
+}
+
+void 
+my_log_syscalls(void) 
+{
+  cprintf("=> Start list of all syscalls sort by time\n");
+  struct _my_syscall_history* curr = _Global_History.calls;
+  while(curr) {
+    cprintf("-> system call %d   %d/%d/%d  %d:%d\':%d\"\n", curr->num, curr->date->year, curr->date->month, curr->date->day, curr->date->hour, curr->date->minute, curr->date->second);
+    curr = curr->global_next;
+  }
+  cprintf("=> End list of all syscalls sort by time\n");
 }
