@@ -144,8 +144,9 @@ struct _my_syscall_history
   uint pid;
   struct rtcdate* date;
   struct _my_syscall_history* next;
+  struct _my_syscall_history* sort_next;
+  int sorted;
   struct _my_syscall_history* global_next;
-  struct _my_syscall_history* prev;
 };
 
 struct _my_history
@@ -215,8 +216,9 @@ _add_call(struct _my_history* history, int num, int pid) {
   new_node->num = num;
   new_node->pid = pid;
   new_node->next = 0;
+  new_node->sorted = 0;
   new_node->global_next = 0;
-  new_node->prev = 0;
+  new_node->sort_next = 0;
 
   if(!history->calls) {
     history->calls = new_node;
@@ -226,7 +228,7 @@ _add_call(struct _my_history* history, int num, int pid) {
     while(curr->next)
       curr = curr->next;
     curr->next = new_node;
-    new_node->prev = curr;
+    // new_node->prev = curr;
   }
   struct _my_syscall_history* curr = _Global_History.calls;
   if(!curr) {
@@ -313,15 +315,15 @@ print_invoked_syscalls(uint pid)
   cprintf("=> Start list of syscalls of process %d\n", pid);
   struct _my_syscall_history* curr = history->calls;
   while(curr) {
-    cprintf("-> system call %d   %d/%d/%d  %d:%d\':%d\"\n", curr->num, curr->date->year, curr->date->month, curr->date->day, curr->date->hour, curr->date->minute, curr->date->second);
+    cprintf("-> system call %d   %d/%d/%d  %d:%d:%d\n", curr->num, curr->date->year, curr->date->month, curr->date->day, curr->date->hour, curr->date->minute, curr->date->second);
     curr = curr->next;
   }
   cprintf("=> End list of syscalls of process %d\n", pid);
 
 }
 
-void swap(struct _my_syscall_history* a, struct _my_syscall_history* b) 
-{ 
+// void swap(struct _my_syscall_history* a, struct _my_syscall_history* b) 
+// { 
   // b->next->prev = a;
   // a->next = b->next;
   // b->next->prev = a;
@@ -329,10 +331,38 @@ void swap(struct _my_syscall_history* a, struct _my_syscall_history* b)
   // b->prev = a->prev;
   // a->prev->next = b;
   // a->prev = b;
-  int num = a->num;
-  a->num = b->num;
-  b->num = num;
-} 
+  // int num = a->num;
+  // a->num = b->num;
+  // b->num = num;
+// } 
+
+struct _my_syscall_history*
+my_find_min(struct _my_syscall_history* iterator) {
+  if(!iterator) {
+    return 0;
+  }
+
+  if(!iterator->next) {
+    return iterator;
+  }
+
+  struct _my_syscall_history* min = 0;
+  int found = 0;
+  while(iterator) {
+    if(!iterator->sorted) {
+      if(!min || iterator->num <= min->num) {
+        min = iterator;
+        found = 1;
+      }
+    }
+    iterator = iterator->next;
+  }
+  if(found) {
+    min->sorted = 1;
+    return min;
+  }
+  return 0;
+}
 
 void 
 my_sort_syscalls(uint pid) {
@@ -341,31 +371,35 @@ my_sort_syscalls(uint pid) {
     cprintf("The process number %d never called any system call.\n", pid);
     return;
   }
+  
+  struct _my_syscall_history *old_head = history->calls;
+  struct _my_syscall_history *new_head = 0;
+  struct _my_syscall_history *min;
+  struct _my_syscall_history *curr;
 
-  int swapped;
-  struct _my_syscall_history* start = history->calls; 
-  struct _my_syscall_history* ptr1; 
-  struct _my_syscall_history* lptr = 0; 
+  while(1) {
+    min = my_find_min(old_head);
+    if(!min)
+      break;
+    min->sort_next = 0;
+    if(!new_head) {
+      new_head = min;
+    }
+    else {
+      for(curr = new_head; curr->sort_next; curr = curr->sort_next);
+      curr->sort_next = min;
+    }
+  }
 
-  if (start == 0) 
-      return; 
-  do
-  { 
-      swapped = 0; 
-      ptr1 = start; 
-
-      while (ptr1->next != lptr) 
-      { 
-          if (ptr1->num > ptr1->next->num) 
-          {  
-              swap(ptr1, ptr1->next); 
-              swapped = 1; 
-          } 
-          ptr1 = ptr1->next; 
-      } 
-      lptr = ptr1; 
-  } 
-  while (swapped);
+  curr = new_head;
+  while(curr) {
+    curr->sorted = 0;
+    struct _my_syscall_history* next = curr->sort_next;
+    curr->sort_next = 0;
+    curr->next = next;
+    curr = next;
+  }
+  history->calls = new_head;
 }
 
 void 
@@ -394,7 +428,7 @@ my_log_syscalls(void)
   cprintf("=> Start list of all syscalls sort by time\n");
   struct _my_syscall_history* curr = _Global_History.calls;
   while(curr) {
-    cprintf("-> pid %d system call %d   %d/%d/%d  %d:%d\':%d\"\n", curr->pid, curr->num, curr->date->year, curr->date->month, curr->date->day, curr->date->hour, curr->date->minute, curr->date->second);
+    cprintf("-> pid %d system call %d   %d/%d/%d  %d:%d:%d\n", curr->pid, curr->num, curr->date->year, curr->date->month, curr->date->day, curr->date->hour, curr->date->minute, curr->date->second);
     curr = curr->global_next;
   }
   cprintf("=> End list of all syscalls sort by time\n");
