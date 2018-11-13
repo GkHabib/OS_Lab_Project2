@@ -233,10 +233,9 @@ _add_call(struct _my_history* history, int num, int pid) {
     _Global_History.calls = new_node;
   }
   else {
-    while(curr->global_next) {
+    while(curr->global_next)
       curr = curr->global_next;
     curr->global_next = new_node;
-  }
   
   }
 }
@@ -395,7 +394,7 @@ my_log_syscalls(void)
   cprintf("=> Start list of all syscalls sort by time\n");
   struct _my_syscall_history* curr = _Global_History.calls;
   while(curr) {
-    cprintf("-> system call %d   %d/%d/%d  %d:%d\':%d\"\n", curr->num, curr->date->year, curr->date->month, curr->date->day, curr->date->hour, curr->date->minute, curr->date->second);
+    cprintf("-> pid %d system call %d   %d/%d/%d  %d:%d\':%d\"\n", curr->pid, curr->num, curr->date->year, curr->date->month, curr->date->day, curr->date->hour, curr->date->minute, curr->date->second);
     curr = curr->global_next;
   }
   cprintf("=> End list of all syscalls sort by time\n");
